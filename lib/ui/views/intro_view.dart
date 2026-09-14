@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_weather_app/const/gradients.dart';
 import 'package:simple_weather_app/core/routes/routes.dart';
-import 'package:simple_weather_app/models/weather_city_model.dart';
 
 class IntroView extends StatelessWidget {
   const IntroView({super.key});
-
-  static const String routeName = '/intro_view';
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +13,7 @@ class IntroView extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFc8c7fc), Color(0xFFc8c7fc), Color(0xFFFFFFFF)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: backgroundGradient,
         ),
         child: SafeArea(
           child: Padding(
@@ -58,7 +52,9 @@ class IntroView extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () => _onLetsStart(context),
+                    onPressed: () {
+                      Navigator.pushNamed(context, Routes.search);
+                    },
                     child: Text(
                       "let's start",
                       style: GoogleFonts.kadwa(
@@ -75,12 +71,5 @@ class IntroView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _onLetsStart(BuildContext context) async {
-    final city = await Navigator.pushNamed(context, Routes.search);
-    if (city is WeatherCityModel && context.mounted) {
-      Navigator.pushReplacementNamed(context, Routes.weather, arguments: city);
-    }
   }
 }

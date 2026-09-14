@@ -25,7 +25,4 @@ class WeatherCityModel {
       lon: (json['lon'] as num).toDouble(),
     );
   }
-
-  /// Query string used to request the forecast for this exact location.
-  String get query => '$lat,$lon';
 }
