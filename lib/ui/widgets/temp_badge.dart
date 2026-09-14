@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Small rounded pill used to show the day's Max/Min temperature,
-/// matching the red (max) / blue (min) badges from the app design.
 class TempBadge extends StatelessWidget {
   final String label;
   final double tempC;

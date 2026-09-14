@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
 import 'package:simple_weather_app/models/weather_model.dart';
 
@@ -10,6 +11,17 @@ class WeatherService {
 
   WeatherService() {
     dio = Dio(BaseOptions(baseUrl: baseUrl));
+
+    dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+      ),
+    );
   }
 
   /// Search for cities/locations matching the text the user typed.
@@ -27,8 +39,9 @@ class WeatherService {
           'Failed to load city suggestions: ${response.statusCode}',
         );
       }
-    } on DioException catch (e) {
-      print('Error: ${e.message}');
+    } on DioException {
+      // PrettyDioLogger already logs the request/response, so we only
+      // rethrow here for the Cubits to turn into a failure state.
       rethrow;
     }
   }
@@ -55,8 +68,7 @@ class WeatherService {
       } else {
         throw Exception('Failed to load weather: ${response.statusCode}');
       }
-    } on DioException catch (e) {
-      print('Error: ${e.message}');
+    } on DioException {
       rethrow;
     }
   }
