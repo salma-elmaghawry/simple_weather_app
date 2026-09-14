@@ -1,5 +1,3 @@
-// Basic smoke test: the app boots and shows the Intro view's "let's start"
-// button without throwing.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
