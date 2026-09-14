@@ -31,7 +31,7 @@ class _SearchViewState extends State<SearchView> {
     if (debounce?.isActive ?? false) {
       debounce!.cancel();
     }
-    debounce = Timer(const Duration(milliseconds: 500), () {
+    debounce = Timer(const Duration(seconds: 1), () {
       cubit.searchCities(value);
     });
   }
