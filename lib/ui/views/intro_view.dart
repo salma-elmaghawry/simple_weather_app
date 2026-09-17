@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_weather_app/core/const.dart';
 import 'package:simple_weather_app/core/routes/routes.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
 
@@ -14,13 +15,7 @@ class IntroView extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFc8c7fc), Color(0xFFc8c7fc), Color(0xFFFFFFFF)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        decoration: backgroundGradient,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),

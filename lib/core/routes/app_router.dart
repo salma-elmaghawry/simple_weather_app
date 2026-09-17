@@ -6,8 +6,9 @@ import 'package:simple_weather_app/ui/views/search_view.dart';
 import 'package:simple_weather_app/ui/views/weather_view.dart';
 
 class AppRouter {
-  Route<dynamic> generateRoute(RouteSettings settings) {
+  Route<dynamic>? generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case '/':
       case Routes.intro:
         return MaterialPageRoute(builder: (_) => const IntroView());
 
@@ -19,11 +20,9 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => WeatherView(city: city));
 
       default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
-          ),
-        );
+        // Returning null here lets MaterialApp's onUnknownRoute handle it,
+        // instead of showing a raw "No route defined for ..." screen.
+        return null;
     }
   }
 }

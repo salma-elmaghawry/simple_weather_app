@@ -3,11 +3,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
 import 'package:simple_weather_app/models/weather_model.dart';
+import 'package:simple_weather_app/repository/weather_repo.dart';
 
 class WeatherService {
   late Dio dio;
   static const String baseUrl = 'https://api.weatherapi.com/v1';
+  static const String pexelsBaseUrl = 'https://api.pexels.com/v1';
   static String apiKey = dotenv.env['apiKey']!;
+  static String pexelsApiKey = dotenv.env['pexelsApiKey'] ?? '';
 
   WeatherService() {
     dio = Dio(BaseOptions(baseUrl: baseUrl));
@@ -40,33 +43,51 @@ class WeatherService {
         );
       }
     } on DioException {
-      // PrettyDioLogger already logs the request/response, so we only
-      // rethrow here for the Cubits to turn into a failure state.
+  
       rethrow;
     }
   }
 
-  /// Fetch current weather + forecast for a given city query
-  /// (usually "lat,lon" so we get the exact location the user picked).
-  Future<WeatherModel> fetchWeather({
-    required String query,
-    int days = 3,
-  }) async {
+ //get city photo from Pexels to use as the Weather screen background
+  Future<String> getCityImage(String city) async {
+    if (pexelsApiKey.isEmpty) return '';
+    try {
+      final response = await Dio().get(
+        '$pexelsBaseUrl/search',
+        queryParameters: {'query': city, 'per_page': 1},
+        options: Options(headers: {'Authorization': pexelsApiKey}),
+      );
+      final photos = response.data['photos'] as List;
+      if (photos.isEmpty) return '';
+      return photos[0]['src']['original'];
+    } catch (_) {
+      // A missing/invalid Pexels key or network hiccup shouldn't break
+      // the weather fetch — just fall back to no background photo.
+      return '';
+    }
+  }
+
+ //get weather by city name
+  Future<WeatherRepo> getWeatherByCity(String cityName) async {
     try {
       final response = await dio.get(
         '/forecast.json',
-        queryParameters: {
-          'key': apiKey,
-          'q': query,
-          'days': days,
-          'aqi': 'no',
-          'alerts': 'no',
-        },
+        queryParameters: {'key': apiKey, 'q': cityName, 'days': 3},
       );
       if (response.statusCode == 200) {
-        return WeatherModel.fromJson(response.data);
+        final data=response.data;
+        List<WeatherModel> weatherList = [
+          WeatherModel.fromJson(data, 0),
+          WeatherModel.fromJson(data, 1),
+          WeatherModel.fromJson(data, 2),
+
+        ];
+        final cityImage = await getCityImage(cityName);
+        return WeatherRepo(weatherList: weatherList, cityImageUrl: cityImage);
       } else {
-        throw Exception('Failed to load weather: ${response.statusCode}');
+        throw Exception(
+          'Failed to load weather data: ${response.statusCode}',
+        );
       }
     } on DioException {
       rethrow;

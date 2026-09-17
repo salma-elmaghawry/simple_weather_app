@@ -2,11 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_weather_app/core/const.dart';
 import 'package:simple_weather_app/core/routes/routes.dart';
-import 'package:simple_weather_app/core/utils/weather_theme.dart';
 import 'package:simple_weather_app/cubits/weather/weather_cubit.dart';
 import 'package:simple_weather_app/cubits/weather/weather_state.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
+import 'package:simple_weather_app/models/weather_model.dart';
 import 'package:simple_weather_app/services/weather_service.dart';
 import 'package:simple_weather_app/ui/widgets/forecast_tile.dart';
 import 'package:simple_weather_app/ui/widgets/temp_badge.dart';
@@ -15,8 +16,6 @@ class WeatherView extends StatelessWidget {
   final WeatherCityModel city;
 
   const WeatherView({super.key, required this.city});
-
-  static const String routeName = '/weather_view';
 
   Future<void> _openSearch(BuildContext context, WeatherCubit cubit) async {
     final selected = await Navigator.pushNamed(context, Routes.search);
@@ -32,43 +31,50 @@ class WeatherView extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final cubit = context.read<WeatherCubit>();
-          return BlocBuilder<WeatherCubit, WeatherState>(
-            builder: (context, state) {
-              final gradientColors = state is WeatherSuccess
-                  ? weatherGradientColors(
-                      conditionText: state.weather.conditionText,
-                      isDay: state.weather.isDay,
-                    )
-                  : const [Color(0xFFc8c7fc), Color(0xFFFFFFFF)];
+          return Scaffold(
+            body: BlocBuilder<WeatherCubit, WeatherState>(
+              builder: (context, state) {
+                final cityImageUrl = state is WeatherSuccess
+                    ? state.weathers.cityImageUrl
+                    : '';
 
-              return Scaffold(
-                body: Container(
+                return Container(
                   width: double.infinity,
                   height: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Stack(
-                      children: [
-                        _buildBody(context, state),
-                        Positioned(
-                          top: 8,
-                          right: 16,
-                          child: _SearchButton(
-                            onTap: () => _openSearch(context, cubit),
-                          ),
+                  decoration: backgroundGradient,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (cityImageUrl.isNotEmpty)
+                        CachedNetworkImage(
+                          imageUrl: cityImageUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) =>
+                              const SizedBox.shrink(),
                         ),
-                      ],
-                    ),
+                      // Darken the photo so the white forecast text stays
+                      // readable on top of it.
+                      if (cityImageUrl.isNotEmpty)
+                        Container(color: Colors.black.withValues(alpha: 0.25)),
+                      SafeArea(
+                        child: Stack(
+                          children: [
+                            _buildBody(context, state),
+                            Positioned(
+                              top: 8,
+                              right: 16,
+                              child: _SearchButton(
+                                onTap: () => _openSearch(context, cubit),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),
@@ -110,58 +116,87 @@ class WeatherView extends StatelessWidget {
       );
     }
 
-    final weather = (state as WeatherSuccess).weather;
+    final weathers = (state as WeatherSuccess).weathers.weatherList;
+    final today = weathers.first;
+    final forecastDays = weathers.skip(1).toList();
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+      padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _CurrentWeatherCard(weather: today),
+          const SizedBox(height: 20),
+          _ForecastCard(days: forecastDays),
+        ],
+      ),
+    );
+  }
+}
+
+class _CurrentWeatherCard extends StatelessWidget {
+  final WeatherModel weather;
+
+  const _CurrentWeatherCard({required this.weather});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
         children: [
           Text(
             weather.date,
             style: GoogleFonts.kadwa(fontSize: 14, color: Colors.white70),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             weather.cityName,
             style: GoogleFonts.kadwa(
-              fontSize: 30,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             weather.country,
             style: GoogleFonts.kadwa(fontSize: 15, color: Colors.white70),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           CachedNetworkImage(
             imageUrl: weather.conditionIconUrl,
-            width: 70,
-            height: 70,
+            width: 64,
+            height: 64,
             errorWidget: (context, url, error) =>
-                const SizedBox(width: 70, height: 70),
+                const SizedBox(width: 64, height: 64),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 weather.conditionText,
-                style: GoogleFonts.kadwa(fontSize: 16, color: Colors.white),
+                style: GoogleFonts.kadwa(fontSize: 15, color: Colors.white),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Text(
-                '${weather.currentTempC.toStringAsFixed(1)}°C',
+                '${weather.avgTempC.toStringAsFixed(1)}°C',
                 style: GoogleFonts.kadwa(
-                  fontSize: 30,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -170,34 +205,44 @@ class WeatherView extends StatelessWidget {
               TempBadge.min(tempC: weather.minTempC),
             ],
           ),
-          const SizedBox(height: 36),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '2-day forecast',
-                  style: GoogleFonts.kadwa(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const Divider(color: Colors.white24, height: 20),
-                for (int i = 0; i < weather.forecast.length; i++) ...[
-                  ForecastTile(day: weather.forecast[i]),
-                  if (i != weather.forecast.length - 1)
-                    const Divider(color: Colors.white24, height: 1),
-                ],
-              ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ForecastCard extends StatelessWidget {
+  final List<WeatherModel> days;
+
+  const _ForecastCard({required this.days});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '${days.length}-day forecast',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.kadwa(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
+          const Divider(color: Colors.white24, height: 28),
+          for (int i = 0; i < days.length; i++) ...[
+            ForecastTile(day: days[i]),
+            if (i != days.length - 1)
+              const Divider(color: Colors.white24, height: 1),
+          ],
         ],
       ),
     );
@@ -212,14 +257,16 @@ class _SearchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.85),
+      color: AppColors.primaryColor,
       shape: const CircleBorder(),
+      elevation: 4,
+      shadowColor: Colors.black45,
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: const Padding(
-          padding: EdgeInsets.all(10),
-          child: Icon(Icons.search, color: Colors.black87),
+          padding: EdgeInsets.all(12),
+          child: Icon(Icons.search, color: Colors.white, size: 22),
         ),
       ),
     );

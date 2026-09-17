@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TempBadge extends StatelessWidget {
   final String label;
-  final double tempC;
+  final num tempC;
   final Color color;
 
   const TempBadge({
