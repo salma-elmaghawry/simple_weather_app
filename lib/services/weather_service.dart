@@ -50,7 +50,7 @@ class WeatherService {
     if (pexelsApiKey.isEmpty) return '';
     try {
       final response = await Dio().get(
-        '$pexelsBaseUrl/search',
+        '$pexelsBaseUrl/search', //https://api.pexels.com/v1/search?query=city&per_page=1
         queryParameters: {'query': city, 'per_page': 1},
         options: Options(headers: {'Authorization': pexelsApiKey}),
       );
@@ -71,8 +71,8 @@ class WeatherService {
         ),
         getCityImage(cityName),
       ]);
-      final response = results[0] as Response;
-      final cityImage = results[1] as String;
+      final response = results[0] as Response; //forcast data
+      final cityImage = results[1] as String; // city image url
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -81,11 +81,12 @@ class WeatherService {
           WeatherModel.fromJson(data, 1),
           WeatherModel.fromJson(data, 2),
         ];
-        return WeatherRepo(weatherList: weatherList, cityImageUrl: cityImage);
-      } else {
-        throw Exception(
-          'Failed to load weather data: ${response.statusCode}',
+        return WeatherRepo(
+          weatherList: weatherList,
+          cityImageUrl: '$cityImage',
         );
+      } else {
+        throw Exception('Failed to load weather data: ${response.statusCode}');
       }
     } on DioException {
       rethrow;

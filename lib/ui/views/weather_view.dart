@@ -7,13 +7,10 @@ import 'package:simple_weather_app/core/routes/routes.dart';
 import 'package:simple_weather_app/cubits/weather/weather_cubit.dart';
 import 'package:simple_weather_app/cubits/weather/weather_state.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
-import 'package:simple_weather_app/models/weather_model.dart';
 import 'package:simple_weather_app/services/weather_service.dart';
 import 'package:simple_weather_app/ui/widgets/current_weather_card.dart';
 import 'package:simple_weather_app/ui/widgets/forcast_card.dart';
-import 'package:simple_weather_app/ui/widgets/forecast_tile.dart';
 import 'package:simple_weather_app/ui/widgets/search_button.dart';
-import 'package:simple_weather_app/ui/widgets/temp_badge.dart';
 
 class WeatherView extends StatelessWidget {
   final WeatherCityModel city;

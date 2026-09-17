@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_weather_app/core/routes/routes.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
@@ -16,7 +17,7 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SearchView());
 
       case Routes.weather:
-        final city = settings.arguments as WeatherCityModel;
+         final city=settings.arguments as WeatherCityModel;
         return MaterialPageRoute(builder: (_) => WeatherView(city: city));
 
       default:
