@@ -27,7 +27,6 @@ class WeatherService {
     );
   }
 
-  /// Search for cities/locations matching the text the user typed.
   Future<List<WeatherCityModel>> searchCities(String query) async {
     try {
       final response = await dio.get(
@@ -43,12 +42,10 @@ class WeatherService {
         );
       }
     } on DioException {
-  
       rethrow;
     }
   }
 
- //get city photo from Pexels to use as the Weather screen background
   Future<String> getCityImage(String city) async {
     if (pexelsApiKey.isEmpty) return '';
     try {
@@ -59,30 +56,31 @@ class WeatherService {
       );
       final photos = response.data['photos'] as List;
       if (photos.isEmpty) return '';
-      return photos[0]['src']['original'];
+      return photos[0]['src']['portrait'];
     } catch (_) {
-      // A missing/invalid Pexels key or network hiccup shouldn't break
-      // the weather fetch — just fall back to no background photo.
       return '';
     }
   }
 
- //get weather by city name
   Future<WeatherRepo> getWeatherByCity(String cityName) async {
     try {
-      final response = await dio.get(
-        '/forecast.json',
-        queryParameters: {'key': apiKey, 'q': cityName, 'days': 3},
-      );
+      final results = await Future.wait([
+        dio.get(
+          '/forecast.json',
+          queryParameters: {'key': apiKey, 'q': cityName, 'days': 3},
+        ),
+        getCityImage(cityName),
+      ]);
+      final response = results[0] as Response;
+      final cityImage = results[1] as String;
+
       if (response.statusCode == 200) {
-        final data=response.data;
+        final data = response.data;
         List<WeatherModel> weatherList = [
           WeatherModel.fromJson(data, 0),
           WeatherModel.fromJson(data, 1),
           WeatherModel.fromJson(data, 2),
-
         ];
-        final cityImage = await getCityImage(cityName);
         return WeatherRepo(weatherList: weatherList, cityImageUrl: cityImage);
       } else {
         throw Exception(
