@@ -11,11 +11,11 @@ class TempBadge extends StatelessWidget {
     required this.tempC,
     required this.color,
   });
-
+   // Named constructors for max and min temperature badges
   const TempBadge.max({super.key, required this.tempC})
     : label = 'Max',
       color = const Color(0xFFE5484D);
-
+   // Named constructors for max and min temperature badges
   const TempBadge.min({super.key, required this.tempC})
     : label = 'Min',
       color = const Color(0xFF2E7DD7);

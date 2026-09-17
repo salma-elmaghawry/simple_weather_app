@@ -1,7 +1,6 @@
 class WeatherModel {
   final String cityName;
   final String country;
-
   final String date;
   final String conditionText;
   final String conditionIconUrl;
