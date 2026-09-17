@@ -17,66 +17,58 @@ class WeatherView extends StatelessWidget {
 
   const WeatherView({super.key, required this.city});
 
-  Future<void> _openSearch(BuildContext context, WeatherCubit cubit) async {
-    final selected = await Navigator.pushNamed(context, Routes.search);
-    if (selected is WeatherCityModel) {
-      cubit.fetchWeather(selected.query);
-    }
+  void _openSearch(BuildContext context) {
+    Navigator.pushNamed(context, Routes.search);
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => WeatherCubit(WeatherService())..fetchWeather(city.query),
-      child: Builder(
-        builder: (context) {
-          final cubit = context.read<WeatherCubit>();
-          return Scaffold(
-            body: BlocBuilder<WeatherCubit, WeatherState>(
-              builder: (context, state) {
-                final cityImageUrl = state is WeatherSuccess
-                    ? state.weathers.cityImageUrl
-                    : '';
+      child: Scaffold(
+        body: BlocBuilder<WeatherCubit, WeatherState>(
+          builder: (context, state) {
+            final cityImageUrl = state is WeatherSuccess
+                ? state.weathers.cityImageUrl
+                : '';
 
-                return Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: backgroundGradient,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (cityImageUrl.isNotEmpty)
-                        CachedNetworkImage(
-                          imageUrl: cityImageUrl,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) =>
-                              const SizedBox.shrink(),
+            return Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: backgroundGradient,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (cityImageUrl.isNotEmpty)
+                    CachedNetworkImage(
+                      imageUrl: cityImageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) =>
+                          const SizedBox.shrink(),
+                    ),
+                  // Darken the photo so the white forecast text stays
+                  // readable on top of it.
+                  if (cityImageUrl.isNotEmpty)
+                    Container(color: Colors.black.withValues(alpha: 0.25)),
+                  SafeArea(
+                    child: Stack(
+                      children: [
+                        _buildBody(context, state),
+                        Positioned(
+                          top: 8,
+                          right: 16,
+                          child: _SearchButton(
+                            onTap: () => _openSearch(context),
+                          ),
                         ),
-                      // Darken the photo so the white forecast text stays
-                      // readable on top of it.
-                      if (cityImageUrl.isNotEmpty)
-                        Container(color: Colors.black.withValues(alpha: 0.25)),
-                      SafeArea(
-                        child: Stack(
-                          children: [
-                            _buildBody(context, state),
-                            Positioned(
-                              top: 8,
-                              right: 16,
-                              child: _SearchButton(
-                                onTap: () => _openSearch(context, cubit),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -145,7 +137,7 @@ class _CurrentWeatherCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.35),
+        color: Colors.black.withValues(alpha: 0.80),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -222,7 +214,7 @@ class _ForecastCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.35),
+        color: Colors.black.withValues(alpha: 0.80),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -238,10 +230,9 @@ class _ForecastCard extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.white24, height: 28),
-          for (int i = 0; i < days.length; i++) ...[
-            ForecastTile(day: days[i]),
-            if (i != days.length - 1)
-              const Divider(color: Colors.white24, height: 1),
+          for (final day in days) ...[
+            ForecastTile(day: day),
+            if (day != days.last) const Divider(color: Colors.white24, height: 1),
           ],
         ],
       ),

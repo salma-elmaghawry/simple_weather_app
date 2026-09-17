@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_weather_app/core/const.dart';
+import 'package:simple_weather_app/core/routes/routes.dart';
 import 'package:simple_weather_app/cubits/search/search_cubit.dart';
 import 'package:simple_weather_app/cubits/search/search_state.dart';
 import 'package:simple_weather_app/models/weather_city_model.dart';
@@ -41,7 +42,7 @@ class _SearchViewState extends State<SearchView> {
   void onCitySelected(WeatherCityModel city, SearchCubit cubit) {
     searchController.text = '${city.name}, ${city.country}';
     cubit.clearSearch();
-    Navigator.pop(context, city);
+    Navigator.pushNamed(context, Routes.weather, arguments: city);
   }
 
   @override

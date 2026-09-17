@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_weather_app/core/const.dart';
 import 'package:simple_weather_app/core/routes/routes.dart';
-import 'package:simple_weather_app/models/weather_city_model.dart';
 
 class IntroView extends StatelessWidget {
   const IntroView({super.key});
-
-  static const String routeName = '/intro_view';
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +50,8 @@ class IntroView extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () => _onLetsStart(context),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, Routes.search),
                     child: Text(
                       "let's start",
                       style: GoogleFonts.kadwa(
@@ -70,12 +68,5 @@ class IntroView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _onLetsStart(BuildContext context) async {
-    final city = await Navigator.pushNamed(context, Routes.search);
-    if (city is WeatherCityModel && context.mounted) {
-      Navigator.pushReplacementNamed(context, Routes.weather, arguments: city);
-    }
   }
 }
